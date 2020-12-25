@@ -8,8 +8,11 @@
     <artifactId>share</artifactId>
     <packaging>pom</packaging>
     <version>0.0.1-SNAPSHOT</version>
+
     <modules>
         <module>classloader</module>
+        <module>test</module>
+        <module>structure</module>
     </modules>
 
     <name>share</name>
@@ -38,6 +41,12 @@
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
                 <version>1.16.10</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>19.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
