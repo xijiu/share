@@ -2,6 +2,7 @@ package org.xijiu.share.aqs;
 
 import org.junit.Test;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.AbstractQueuedSynchronizer;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -21,6 +22,11 @@ public class ReentrantLockTest {
     Thread thread1 = new Thread(() -> {
       System.out.println("线程1准备加锁");
       reentrantLock.lock();
+      try {
+        reentrantLock.tryLock(1000L, TimeUnit.MILLISECONDS);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
       System.out.println("线程1加锁成功，将睡眠1秒钟");
       PubTools.sleep(1000);
       reentrantLock.unlock();

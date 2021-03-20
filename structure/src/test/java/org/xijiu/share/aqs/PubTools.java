@@ -13,4 +13,12 @@ public class PubTools {
       e.printStackTrace();
     }
   }
+
+  public static void sleep(long millis, int nanos) {
+    try {
+      Thread.sleep(millis, nanos);
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
+  }
 }
