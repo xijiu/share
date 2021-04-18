@@ -24,7 +24,7 @@ public class ConditionTest {
       try {
         lock.lock();
         System.out.println("线程1即将进入等待");
-//        condition.await();
+        condition.await();
         condition.await(111, TimeUnit.DAYS);
         System.out.println("线程1等待结束");
         lock.unlock();
@@ -52,6 +52,7 @@ public class ConditionTest {
     lock.lock();
     PubTools.sleep(2000);
     System.out.println("准备开始执行signalAll方法");
+    condition.signal();
     condition.signalAll();
     System.out.println("signalAll方法执行完毕");
     lock.unlock();
@@ -61,15 +62,59 @@ public class ConditionTest {
   }
 
   @Test
-  public void test2() {
-    String userIds = "2742\n" +
-        "210718478";
-    String[] split = userIds.split("\n");
-    System.out.println(split.length);
-    StringBuilder sb = new StringBuilder();
-    for (int i = 0; i < split.length; i++) {
-      sb.append(split[i]).append(",");
-    }
-    System.out.println(sb.toString());
+  public void test2() throws Exception {
+    Lock lock = new ReentrantLock();
+    Condition condition = lock.newCondition();
+
+//    lock.lock();
+    System.out.println("线程1即将进入等待");
+    condition.await();
+    System.out.println("线程1等待结束");
+//    lock.unlock();
+
+
+//    Thread thread1 = new Thread(() -> {
+//      try {
+//        lock.lock();
+//        System.out.println("线程1即将进入等待");
+//        condition.await();
+//        System.out.println("线程1等待结束");
+//        lock.unlock();
+//      } catch (InterruptedException e) {
+//        e.printStackTrace();
+//      }
+//    });
+
+  }
+
+  @Test
+  public void test3() throws Exception {
+    Lock lock = new ReentrantLock();
+    Condition condition = lock.newCondition();
+
+    Thread thread1 = new Thread(() -> {
+      try {
+        lock.lock();
+        System.out.println("线程1即将进入等待");
+        condition.await();
+        System.out.println("线程1等待结束");
+        lock.unlock();
+      } catch (InterruptedException e) {
+        e.printStackTrace();
+      }
+    });
+
+    thread1.start();
+
+    PubTools.sleep(1000);
+
+    lock.lock();
+//    condition.signal();
+    condition.signalAll();
+    lock.unlock();
+
+    thread1.join();
+
+
   }
 }

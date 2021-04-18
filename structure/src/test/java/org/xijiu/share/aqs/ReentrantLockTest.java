@@ -55,4 +55,18 @@ public class ReentrantLockTest {
     Object obj = new Object();
     obj.wait();
   }
+
+  @Test
+  public void test3() throws Exception {
+    ReentrantLock reentrantLock = new ReentrantLock();
+    try {
+      reentrantLock.lock();
+      doBusiness();
+    } finally {
+      reentrantLock.unlock();
+    }
+  }
+
+  private void doBusiness() {
+  }
 }

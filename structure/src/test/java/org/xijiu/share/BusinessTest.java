@@ -134,12 +134,7 @@ public class BusinessTest {
 
   @Test
   public void test4() {
-    Collection<Integer> co = cache.getUnchecked(1L);
-    System.out.println(co);
-    co = cache.getUnchecked(1L);
-    System.out.println(co);
-    cache.refresh(1L);
-    System.out.println(cache.getUnchecked(1L));
+
   }
 
 }

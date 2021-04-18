@@ -2,7 +2,13 @@ package org.xijiu.share.aqs;
 
 import org.junit.Test;
 
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.LockSupport;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -82,6 +88,60 @@ public class AQSTest {
     System.out.println(sb.toString());
   }
 
+  private int num = 0;
 
+  @Test
+  public void writeReadLockTest() throws InterruptedException {
+    MyReadWriteLock readWriteLock = new MyReadWriteLock();
+    ExecutorService executorService = Executors.newCachedThreadPool();
+    AtomicInteger finishReadThreadNum = new AtomicInteger();
+    int readThreadNum = 4;
+    for (int i = 0; i < readThreadNum; i++) {
+      executorService.submit(new Thread("read-thread-" + i) {
+        @Override
+        public void run() {
+          int sum = 0;
+          for (int j = 0; j < 400000; j++) {
+//            System.out.println("read begin");
+            readWriteLock.readLock();
+//            System.out.println("read in");
+//            PubTools.sleep(2);
+            System.out.println(++sum + "   : " + num);
+            readWriteLock.unlockRead();
+//            System.out.println("read out");
+          }
+          finishReadThreadNum.incrementAndGet();
+        }
+      });
+    }
+
+    for (int i = 0; i < 2; i++) {
+      executorService.submit(new Thread("write-thread-" + i) {
+        @Override
+        public void run() {
+          while (true) {
+            readWriteLock.writeLock();
+            System.out.println("wirte-in");
+            num++;
+            readWriteLock.unlockWrite();
+            PubTools.sleep(100);
+            if (finishReadThreadNum.get() == readThreadNum) {
+              break;
+            }
+          }
+        }
+      });
+    }
+
+    executorService.shutdown();
+    executorService.awaitTermination(5, TimeUnit.DAYS);
+//    System.out.println(num);
+  }
+
+
+  @Test
+  public void test5() {
+    Set<String> set = new HashSet<>();
+  }
 
 }
