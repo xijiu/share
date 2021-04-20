@@ -91,30 +91,12 @@ public class ConditionTest {
   public void test3() throws Exception {
     Lock lock = new ReentrantLock();
     Condition condition = lock.newCondition();
-
-    Thread thread1 = new Thread(() -> {
-      try {
-        lock.lock();
-        System.out.println("线程1即将进入等待");
-        condition.await();
-        System.out.println("线程1等待结束");
-        lock.unlock();
-      } catch (InterruptedException e) {
-        e.printStackTrace();
-      }
-    });
-
-    thread1.start();
-
-    PubTools.sleep(1000);
-
-    lock.lock();
-//    condition.signal();
-    condition.signalAll();
-    lock.unlock();
-
-    thread1.join();
-
+    try {
+      lock.lock();
+      condition.signal();
+    } finally {
+      lock.unlock();
+    }
 
   }
 }

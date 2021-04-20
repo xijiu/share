@@ -6,7 +6,6 @@ import org.junit.Test;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
@@ -17,26 +16,25 @@ public class ConditionCompareTest {
   private ReentrantLock lock = new ReentrantLock();
   private Condition condition = lock.newCondition();
 
-  private int threadNum = 10;
-
   @Test
   public void runTest() throws InterruptedException {
     long begin = System.currentTimeMillis();
-    for (int i = 0; i < 100000; i++) {
+    for (int i = 0; i < 10000; i++) {
       if (i % 1000 == 0) {
         System.out.println(i);
       }
-      test();
+      aqsTest();
     }
     long cost = System.currentTimeMillis() - begin;
     System.out.println("耗时： " + cost);
   }
 
   @Test
-  public void test() throws InterruptedException {
+  public void aqsTest() throws InterruptedException {
     AtomicInteger lockedNum = new AtomicInteger();
     List<Thread> list = Lists.newArrayList();
-    for (int i = 0; i < threadNum; i++) {
+    // 步骤一：启动10个线程，并进入wait等待
+    for (int i = 0; i < 10; i++) {
       Thread thread = new Thread(() -> {
         try {
           lock.lock();
@@ -51,8 +49,9 @@ public class ConditionCompareTest {
       list.add(thread);
     }
 
+    // 步骤二：等待10个线程全部进入wait方法
     while (true) {
-      if (lockedNum.get() != threadNum) {
+      if (lockedNum.get() != 10) {
         continue;
       }
       boolean allWaiting = true;
@@ -67,10 +66,12 @@ public class ConditionCompareTest {
       }
     }
 
+    // 步骤三：唤醒10个线程
     lock.lock();
     condition.signalAll();
     lock.unlock();
 
+    // 步骤四：等待10个线程全部执行完毕
     for (Thread thread : list) {
       thread.join();
     }
@@ -78,10 +79,11 @@ public class ConditionCompareTest {
   }
 
   @Test
-  public void test2() throws InterruptedException {
+  public void jdkTest() throws InterruptedException {
     Object lock = new Object();
     List<Thread> list = Lists.newArrayList();
-    for (int i = 0; i < threadNum; i++) {
+    // 步骤一：启动10个线程，并进入wait等待
+    for (int i = 0; i < 10; i++) {
       Thread thread = new Thread(() -> {
         try {
           synchronized (lock) {
@@ -95,6 +97,7 @@ public class ConditionCompareTest {
       list.add(thread);
     }
 
+    // 步骤二：等待10个线程全部进入wait方法
     while (true) {
       boolean allWaiting = true;
       for (Thread thread : list) {
@@ -108,10 +111,12 @@ public class ConditionCompareTest {
       }
     }
 
+    // 步骤三：唤醒10个线程
     synchronized (lock) {
       lock.notifyAll();
     }
 
+    // 步骤四：等待10个线程全部执行完毕
     for (Thread thread : list) {
       thread.join();
     }

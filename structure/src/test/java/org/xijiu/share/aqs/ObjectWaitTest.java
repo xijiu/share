@@ -64,10 +64,9 @@ public class ObjectWaitTest {
 
   @Test
   public void test2() throws InterruptedException {
-    obj.wait();
-//    synchronized (obj) {  // "阻塞1"
-//      obj.wait(); // notify后进入 "阻塞2"
-//      System.out.println("线程1--啦啦啦");
-//    }
+    synchronized (obj) {
+      obj.notify();
+//      obj.notifyAll();
+    }
   }
 }
