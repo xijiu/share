@@ -1,5 +1,6 @@
 package org.xijiu.share;
 
+import com.google.common.base.Objects;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -12,9 +13,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.math.BigDecimal;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -134,7 +133,104 @@ public class BusinessTest {
 
   @Test
   public void test4() {
+    System.out.println(Integer.MAX_VALUE);
 
   }
 
+
+
+  public static List<Map<String, Object>> fillFirstListForDiff(List<Map<String, Object>> first,
+                                                               List<Map<String, Object>> second, String dtField, String hrField,
+                                                               int dayGap, Map<String, Object> viewKeyValues) {
+    if (dtField == null || dtField.isEmpty()) {
+      throw new IllegalArgumentException("dtField参数为空！");
+    }
+    if (viewKeyValues == null || viewKeyValues.isEmpty()) {
+      throw new IllegalArgumentException("viewKeyValues参数为空！");
+    }
+
+    for (Map<String, Object> map : second) {
+      String dt = String.valueOf(map.get(dtField));
+      if (dt != null) {
+        int dateValue = DateUDF.incDay(Integer.parseInt(dt), dayGap);
+        Object hrValue = (hrField == null || "".equals(hrField)) ? null : map.get(hrField);
+        if (firstListNotContains(first, dtField, dateValue, hrField, hrValue)) {
+          Map<String, Object> newRecord = new HashMap<>(map);
+          newRecord.putAll(viewKeyValues);
+          newRecord.put(dtField, dateValue);
+          first.add(newRecord);
+        }
+      }
+    }
+    return first;
+  }
+
+  private static boolean firstListNotContains(List<Map<String, Object>> first, String dtField, int dateValue,
+                                              String hrField, Object hrValue) {
+    for (Map<String, Object> map : first) {
+      String dtStr = String.valueOf(map.get(dtField));
+      if (String.valueOf(dateValue).equalsIgnoreCase(dtStr)) {
+        if (hrField != null && !"".equals(hrField) && hrValue != null) {
+          Object firstHr = map.get(hrField);
+          if (hrValue == firstHr || hrValue.equals(firstHr)) {
+            return false;
+          }
+        } else {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+
+  public static void main(String[] args) {
+    List<Map<String, Object>> first = new ArrayList<>();
+    Map<String, Object> map2 = new HashMap<>();
+    map2.put("user_id", 1061);
+    map2.put("dt", 20210410);
+    map2.put("hr", "04");
+    map2.put("show", 1000);
+    map2.put("click", 100);
+    map2.put("consume", 23320);
+    first.add(map2);
+
+    Map<String, Object> map3 = new HashMap<>();
+    map3.put("user_id", 1061);
+    map3.put("dt", 20210410);
+    map3.put("hr", "05");
+    map3.put("show", 1000);
+    map3.put("click", 100);
+    map3.put("consume", 23320);
+    first.add(map3);
+
+    // ******************************************************************************
+
+    List<Map<String, Object>> second = new ArrayList<>();
+    Map<String, Object> map = new HashMap<>();
+    map.put("user_id", 1061);
+    map.put("dt", 20210410);
+    map.put("hr", "05");
+    map.put("show", 100);
+    map.put("click", 10);
+    map.put("consume", 2332);
+    second.add(map);
+
+    Map<String, Object> map4 = new HashMap<>();
+    map4.put("user_id", 1061);
+    map4.put("dt", 20210411);
+    map4.put("hr", "05");
+    map4.put("show", 100);
+    map4.put("click", 10);
+    map4.put("consume", 2332);
+    second.add(map4);
+
+    Map<String, Object> viewKeyValues = new HashMap<>();
+    viewKeyValues.put("show", 0);
+    viewKeyValues.put("click", 0);
+    viewKeyValues.put("consume", 0);
+    first = fillFirstListForDiff(first, second, "dt", "hr",6, viewKeyValues);
+    System.out.println(first);
+
+  }
 }
